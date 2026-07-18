@@ -76,3 +76,38 @@
 ■ 補足・残タスク
 - 依存関係分析モード / 画面関係分析モード は未実装（React Flow 採用予定）。
 - 実 Neo4j への接続確認は未実施（サンプルフォールバックで描画検証）。
+
+
+[2026-07-18 12:07:52] 追記: 依存関係分析モードの実装
+
+■ 指摘の要約
+- 「続けて」。依存関係分析モードを React Flow で実装する。
+
+■ 設計判断
+- ノードリンク図は @xyflow/react（React Flow v12）＋ @dagrejs/dagre（自動レイアウト）で描画。
+- 画面モードでも再利用できるよう、汎用の GraphData 型と GraphView クライアントコンポーネントに切り出した。
+- system / file / code の3粒度で共通の DependencyView（サーバーコンポーネント）を用い、各ページは薄いラッパにした。
+- DB未接続時は neo4j/seed/sample.cypher と一致するサンプルへフォールバック。
+
+■ 実施した作業
+- 依存追加: @xyflow/react ^12.3.5, @dagrejs/dagre ^1.1.4。
+- src/components/graph/: types.ts（GraphData）、GraphView.tsx（'use client'、dagre→React Flow変換、種別で色分け、矢印）。
+- src/server/neo4j/queries/dependency.ts（粒度別ノード/エッジCypher）、repositories/dependency-repository.ts（GraphData組立）。
+- src/features/dependency-analysis/: sample.ts（フォールバック）、DependencyView.tsx（タブ＋バナー＋GraphView）。
+- src/app/dependency/{system,file,code}/page.tsx を DependencyView 呼び出しに置換。
+- src/app/api/dependency/route.ts をリポジトリ経由に統一。
+
+■ 検証
+- tsc --noEmit 成功。next build 成功（全12ルート、依存3ページは React Flow 175kB）。
+- next start で3ページとも HTTP 200・サンプル（受注/在庫システム, order/stock.cbl, REGISTER-ORDER/CHECK-STOCK）の描画を確認。
+
+■ 変更したファイル
+- package.json, package-lock.json
+- src/components/graph/{types.ts,GraphView.tsx}
+- src/server/neo4j/queries/dependency.ts, src/server/neo4j/repositories/dependency-repository.ts
+- src/features/dependency-analysis/{sample.ts,DependencyView.tsx}
+- src/app/dependency/{system,file,code}/page.tsx, src/app/api/dependency/route.ts
+
+■ 残タスク
+- 画面関係分析モード（GraphView を direction=TB 等で再利用予定）。
+- 実 Neo4j 接続確認。
