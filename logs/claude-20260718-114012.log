@@ -111,3 +111,33 @@
 ■ 残タスク
 - 画面関係分析モード（GraphView を direction=TB 等で再利用予定）。
 - 実 Neo4j 接続確認。
+
+
+[2026-07-18 12:10:53] 追記: 画面関係分析モードの実装（3モード完成）
+
+■ 指摘の要約
+- 「続けて」。最後の画面関係分析モードを実装する。
+
+■ 実施した作業
+- src/server/neo4j/queries/screen.ts（Screenノード / TRANSITIONS_TO エッジ）、repositories/screen-repository.ts（GraphData組立、trigger をラベル化）。
+- src/features/screen-analysis/sample.ts（フォールバック: 受注一覧→受注登録→登録完了）。
+- src/app/screen/page.tsx: GraphView を direction=TB で再利用。DB未接続時はサンプル＋バナー。
+- src/app/api/screen/route.ts をリポジトリ経由に統一。
+
+■ 検証
+- tsc --noEmit 成功。next build 成功（全12ルート、/screen は React Flow 172kB）。
+- next start で /screen HTTP 200・サンプル（受注一覧/受注登録/登録完了＋新規ボタン/登録ボタン）の描画を確認。
+
+■ 変更したファイル
+- src/server/neo4j/queries/screen.ts, src/server/neo4j/repositories/screen-repository.ts
+- src/features/screen-analysis/sample.ts
+- src/app/screen/page.tsx, src/app/api/screen/route.ts
+
+■ 到達点
+- 3モード（IO分析 / 依存関係分析 / 画面関係分析）すべて実装・描画検証済み。
+- 共通部品: GraphView（依存・画面で共用）、PlanTree（IO専用）。
+- 全モードとも実 Neo4j 未接続でもサンプルで描画可能。
+
+■ 残タスク
+- 実 Neo4j への接続確認（compose 起動＋seed投入での通し確認）。
+- ノードのドリルダウン/モード横断リンク（HANDLED_BY 等）は未実装。
