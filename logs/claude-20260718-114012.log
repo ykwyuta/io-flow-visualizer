@@ -141,3 +141,47 @@
 ■ 残タスク
 - 実 Neo4j への接続確認（compose 起動＋seed投入での通し確認）。
 - ノードのドリルダウン/モード横断リンク（HANDLED_BY 等）は未実装。
+
+
+[2026-07-18 12:24:06] 追記: 残タスク実行（実Neo4j通し確認＋モード横断ドリルダウン）
+
+■ 指摘の要約
+- 「残タスク実行」。①実Neo4jでの通し確認、②モード横断リンク（ドリルダウン）。
+
+■ ① 実Neo4jでの通し確認
+- 環境の docker デーモンが未起動だったため dockerd を起動し、neo4j/docker-compose.yml で Neo4j 5 を起動。
+- schema（制約・索引）＋ seed を README 記載の手順で投入し、アプリを実DB接続で起動して全5ページを確認。
+- この過程で実バグを2件検出・修正:
+  1) seed の変数スコープ不具合: cypher-shell は「;」区切りの文ごとに変数スコープが切れるため、
+     リレーションが無名の迷子ノード間に作られていた（System間 DEPENDS_ON が 0 等）。
+     → 各リレーション文を id で MATCH し直す自己完結形に修正。再投入後、
+        ノード18・リレーション正常（ACCESSES4/CHILD5/CONTAINS2/DEFINES2/DEPENDS_ON2 等）を確認。
+  2) DB連動ページが静的プリレンダリングされ、ビルド時のフォールバックが焼き込まれていた
+     （/dependency/*・/screen が ○ Static）。→ 各ページに export const dynamic='force-dynamic' を付与。
+        再ビルドで全データ連動ルートが ƒ Dynamic となり、全5ページが実データ表示（バナー無し）を確認。
+
+■ ② モード横断ドリルダウン
+- GraphView: ノードに href を持たせ、クリックで next/navigation の router.push により遷移。href 有りは「↗」表示＋ポインタ。
+- 依存(code): EXECUTES を持つ処理単位ノードに href=/io?unit=<id> を付与（UNITS_WITH_IO_PLAN クエリ追加）。
+- 画面: HANDLED_BY の担当コードが IO 実行計画を持つ画面に href=/io?unit=<handlerId> を付与（SCREEN_IO_HANDLERS 追加）。
+- IO ページ: 「→ 依存関係グラフで見る（/dependency/code）」と「担当画面（HANDLED_BY, →/screen）」の横断リンクを表示
+  （IO_HANDLING_SCREENS＋getHandlingScreens 追加）。
+- サンプル(フォールバック)にも横断 href を付与し、DB未接続でも動作するようにした。
+
+■ 検証
+- tsc --noEmit 成功、next build 成功（全12ルート、データ連動は全て ƒ Dynamic）。
+- 実DB接続の next start で確認:
+  - /io: 「このコードを依存関係グラフで見る」「担当画面: 受注登録」を表示。
+  - /dependency/code: REGISTER-ORDER に「↗」＋ href /io?unit=fn:register-order。
+  - /screen: 受注登録 に「↗」＋ href /io?unit=fn:register-order。
+
+■ 変更したファイル
+- neo4j/seed/sample.cypher（自己完結文へ修正）
+- src/app/{io,screen,dependency/system,dependency/file,dependency/code}/page.tsx（force-dynamic＋横断）
+- src/components/graph/{GraphView.tsx,types.ts}（クリック遷移・href）
+- src/server/neo4j/queries/{io,dependency,screen}.ts, repositories/{io,dependency,screen}-repository.ts
+- src/features/{dependency-analysis,screen-analysis}/sample.ts、docs/analysis-modes.md
+
+■ 到達点
+- 3モード＋モード横断ドリルダウンを実Neo4jで通し確認済み。残タスク解消。
+- 運用メモ: 実行時は NEO4J_URL/USER/PASSWORD を環境変数で渡す（既定 bolt://localhost:7687, neo4j/password）。
