@@ -1,0 +1,46 @@
+[2026-07-18 11:40:12] ユーザ指摘対応の作業記録
+
+■ 指摘の要約
+- プロジェクトのフォルダ構成を検討する。処理構造を 3 視点（IO分析 / 依存関係分析 / 画面関係分析）で可視化するツール。利用技術は Neo4j と Next.js。
+- 重要な指摘: ソースを解析してグラフDBへ登録するシステムは本プロジェクトのスコープ外。
+  「グラフDBにどのような構造のデータを登録するか」までが責務。
+  → 当初アナライザ（parsers/extractors/loaders）を含む構成を提案したが、これを全て外し、
+    グラフモデル定義を中核とする構成へ組み直した。
+
+■ 実施した作業
+- フォルダ構成方針を合意（graph-model 中核 + Next.js 可視化、アナライザは範囲外）。
+- 設計ドキュメントを作成:
+  - docs/graph-model.md（グラフ構造の一次定義: ノード/リレーション/プロパティ）
+  - docs/io-plan-model.md（IO実行計画ツリーの表現方法）
+  - docs/analysis-modes.md（3モードとグラフの対応）
+- graph-model/ に TypeScript 型定義を作成:
+  - nodes.ts / relationships.ts / enums/io-operations.ts / enums/io-targets.ts / index.ts
+- neo4j/ を作成:
+  - schema/constraints.cypher（id一意制約）/ schema/indexes.cypher（索引）
+  - seed/sample.cypher（3モードを含む登録サンプル）/ docker-compose.yml
+- src/ に Next.js 可視化アプリの雛形を作成:
+  - app/（3モードのページ、api/ の3ルート、layout/page）
+  - server/neo4j/driver.ts（サーバー専用ドライバ）
+  - features/ components/ lib/ を .gitkeep で用意
+- ルート設定: package.json / tsconfig.json（@graph-model エイリアス）/ next.config.ts / .gitignore
+- CLAUDE.md にプロジェクト概要とディレクトリ構成を追記、README.md を更新。
+
+■ 主な設計判断
+- 3モードは同一グラフを別視点でクエリする構造。ノード種別はラベル、IO演算子は IOOperation.type で表現。
+- IO分析の実行計画ツリー: (処理単位)-[:EXECUTES]->(IOOperation)-[:CHILD{order}]->... + [:ACCESSES{mode}]->(IOTarget)。
+- IO対象5種（Table/DataFile/ExternalSystem/MessageQueue/Session）に共通ラベル IOTarget を併付し横断可能に。
+- アナライザは範囲外だが、外部の登録側が準拠できるよう graph-model と docs を独立した一次定義とした。
+
+■ 変更したファイル
+- docs/graph-model.md, docs/io-plan-model.md, docs/analysis-modes.md
+- graph-model/nodes.ts, relationships.ts, index.ts, enums/io-operations.ts, enums/io-targets.ts
+- neo4j/schema/constraints.cypher, neo4j/schema/indexes.cypher, neo4j/seed/sample.cypher, neo4j/docker-compose.yml
+- src/ 配下（app/・server/・各プレースホルダ）
+- package.json, tsconfig.json, next.config.ts, .gitignore
+- CLAUDE.md, README.md
+- logs/claude-20260718-114012.log（本ログ）
+
+■ 補足
+- 段階的に分割してコミットした（docs → graph-model → neo4j → Next.js雛形 → メタ更新）。
+- npm install / 実際の Neo4j 接続確認は未実施（雛形段階）。可視化ライブラリ（React Flow/Cytoscape 等）は未選定。
+- スキル・サブエージェント本体は未作成のため .claude/logs/skills-日時.log への記録は無し。
