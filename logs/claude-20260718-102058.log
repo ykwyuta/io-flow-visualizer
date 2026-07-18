@@ -1,0 +1,34 @@
+[2026-07-18 10:20:58] ユーザ指摘対応の作業記録
+
+■ 指摘の要約
+- 全作業に適用するルールを CLAUDE.md に、必要時のみ参照するルールを .claude/rules/ 以下に記載し、CLAUDE.md に一覧を載せる（ルールはすべて日本語）。
+- スキル／サブエージェントの作成については公式ドキュメントを確認し、ファイル作成の要点を .claude/rules/ に記載する。
+- ドキュメントはタイムアウト防止のため段階的に書き出してコミットする。
+- スキル／エージェントの作成・改定履歴は .claude/logs/skills-日時.log に記録する。
+- 廃止したスキル／エージェントは削除せず .claude/deprecated/ に移動する。
+- ユーザ指摘に基づく作業内容は logs/claude-日時.log に記録する。
+
+■ 参照した公式ドキュメント
+- スキル: https://code.claude.com/docs/ja/skills
+- サブエージェント: https://code.claude.com/docs/ja/sub-agents
+
+■ 実施した作業
+- CLAUDE.md を新規作成。共通ルール（言語・段階的コミット・作業ログ）と詳細ルール一覧、ディレクトリ構成を記載。
+- .claude/rules/skill-creation.md を作成（スキル作成の要点）。
+- .claude/rules/subagent-creation.md を作成（サブエージェント作成の要点）。
+- .claude/rules/skill-agent-lifecycle.md を作成（履歴記録・廃止時の退避ルール）。
+- .claude/logs/ .claude/deprecated/ を .gitkeep で用意。
+- 本ログ（logs/claude-20260718-102058.log）を作成。
+
+■ 変更したファイル
+- CLAUDE.md
+- .claude/rules/skill-creation.md
+- .claude/rules/subagent-creation.md
+- .claude/rules/skill-agent-lifecycle.md
+- .claude/logs/.gitkeep
+- .claude/deprecated/.gitkeep
+- logs/claude-20260718-102058.log
+
+■ 補足
+- 今回はルール整備のみで、スキル・サブエージェント本体は作成していないため .claude/logs/skills-日時.log への記録は無し。
+- 各ドキュメントはファイル単位で分割し、都度コミットした。
