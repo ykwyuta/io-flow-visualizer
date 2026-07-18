@@ -1,0 +1,25 @@
+{
+  "name": "io-flow-visualizer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "プログラムの処理構造をIO・依存関係・画面関係の3視点で可視化する（Neo4j + Next.js）",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "neo4j-driver": "^5.28.0",
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.0"
+  }
+}
