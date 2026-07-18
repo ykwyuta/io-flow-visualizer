@@ -12,7 +12,10 @@ export function getDriver(): Driver {
     const url = process.env.NEO4J_URL ?? 'bolt://localhost:7687';
     const user = process.env.NEO4J_USER ?? 'neo4j';
     const password = process.env.NEO4J_PASSWORD ?? 'password';
-    driver = neo4j.driver(url, neo4j.auth.basic(user, password));
+    driver = neo4j.driver(url, neo4j.auth.basic(user, password), {
+      // Neo4j の Integer を素の number として受け取る（表示用途では扱いやすい）
+      disableLosslessIntegers: true,
+    });
   }
   return driver;
 }
