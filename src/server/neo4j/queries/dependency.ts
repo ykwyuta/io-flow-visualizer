@@ -25,3 +25,8 @@ export const DEPENDENCY_QUERIES: Record<DependencyGranularity, GraphQuery> = {
             RETURN a.id AS source, b.id AS target, 'CALLS' AS label`,
   },
 };
+
+/** IO 実行計画（EXECUTES）を持つ処理単位の id 一覧。code 粒度の横断リンク判定に使う。 */
+export const UNITS_WITH_IO_PLAN = `
+MATCH (u)-[:EXECUTES]->(:IOOperation) RETURN DISTINCT u.id AS id
+`;

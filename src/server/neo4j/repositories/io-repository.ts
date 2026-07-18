@@ -3,6 +3,7 @@ import type { AccessMode, IoOperationType, IoTargetLabel } from '@graph-model';
 import type { PlanNode, PlanTree } from '@/features/io-analysis/types';
 import { readQuery } from '@/server/neo4j/driver';
 import {
+  IO_HANDLING_SCREENS,
   IO_PLAN_ACCESSES,
   IO_PLAN_EDGES,
   IO_PLAN_OPERATIONS,
@@ -18,6 +19,16 @@ export interface IoRootUnit {
 /** IO 実行計画を持つ処理単位の一覧を取得する。 */
 export async function listIoRootUnits(): Promise<IoRootUnit[]> {
   return readQuery<IoRootUnit>(LIST_IO_ROOT_UNITS);
+}
+
+export interface HandlingScreen {
+  id: string;
+  name: string;
+}
+
+/** 指定した処理単位を担当する画面（②×③ 横断）を取得する。 */
+export async function getHandlingScreens(unitId: string): Promise<HandlingScreen[]> {
+  return readQuery<HandlingScreen>(IO_HANDLING_SCREENS, { rootUnitId: unitId });
 }
 
 interface OpRow {

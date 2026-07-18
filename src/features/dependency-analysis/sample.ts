@@ -24,7 +24,12 @@ export const DEPENDENCY_SAMPLES: Record<DependencyGranularity, GraphData> = {
   },
   code: {
     nodes: [
-      { id: 'fn:register-order', label: 'REGISTER-ORDER', kind: 'Function' },
+      {
+        id: 'fn:register-order',
+        label: 'REGISTER-ORDER',
+        kind: 'Function',
+        href: '/io?unit=fn%3Aregister-order',
+      },
       { id: 'fn:check-stock', label: 'CHECK-STOCK', kind: 'Function' },
     ],
     edges: [

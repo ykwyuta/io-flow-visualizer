@@ -5,6 +5,8 @@ export interface GraphNode {
   label: string;
   /** ノード種別（色分けに使用。例: System / File / Function / Screen） */
   kind: string;
+  /** クリック時に遷移する先（モード横断ドリルダウン用。任意） */
+  href?: string;
 }
 
 export interface GraphEdge {

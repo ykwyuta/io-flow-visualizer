@@ -27,6 +27,13 @@ MATCH (r)-[:CHILD*0..]->(p:IOOperation)-[c:CHILD]->(ch:IOOperation)
 RETURN p.id AS parentId, ch.id AS childId, c.order AS order
 `;
 
+/** 指定した処理単位を担当（HANDLED_BY）する画面の一覧（②×③ 横断） */
+export const IO_HANDLING_SCREENS = `
+MATCH (s:Screen)-[:HANDLED_BY]->(u {id: $rootUnitId})
+RETURN s.id AS id, s.name AS name
+ORDER BY name
+`;
+
 /** 指定した処理単位配下の ACCESSES（IO 対象への入出力） */
 export const IO_PLAN_ACCESSES = `
 MATCH (u {id: $rootUnitId})-[:EXECUTES]->(r:IOOperation)

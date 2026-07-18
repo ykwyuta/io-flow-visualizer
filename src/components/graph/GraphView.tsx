@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Background,
   Controls,
@@ -44,13 +45,14 @@ function layout(data: GraphData, direction: 'LR' | 'TB'): { nodes: Node[]; edges
     return {
       id: n.id,
       position: { x: pos.x - NODE_W / 2, y: pos.y - NODE_H / 2 },
-      data: { label: n.label },
+      data: { label: n.href ? `${n.label} ↗` : n.label, href: n.href },
       style: {
         width: NODE_W,
         borderTop: `4px solid ${color}`,
         borderRadius: 8,
         fontSize: 12,
         background: '#ffffff',
+        cursor: n.href ? 'pointer' : 'default',
       },
     };
   });
@@ -73,11 +75,26 @@ export function GraphView({
   data: GraphData;
   direction?: 'LR' | 'TB';
 }) {
+  const router = useRouter();
   const { nodes, edges } = useMemo(() => layout(data, direction), [data, direction]);
+
+  const onNodeClick = useCallback(
+    (_event: unknown, node: Node) => {
+      const href = (node.data as { href?: string }).href;
+      if (href) router.push(href);
+    },
+    [router],
+  );
 
   return (
     <div style={{ height: '70vh', border: '1px solid #e2e8f0', borderRadius: 8 }}>
-      <ReactFlow nodes={nodes} edges={edges} fitView proOptions={{ hideAttribution: true }}>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodeClick={onNodeClick}
+        fitView
+        proOptions={{ hideAttribution: true }}
+      >
         <Background />
         <Controls />
       </ReactFlow>

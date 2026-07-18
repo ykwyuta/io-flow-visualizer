@@ -7,7 +7,7 @@ import type { GraphData } from '@/components/graph/types';
 export const SCREEN_SAMPLE: GraphData = {
   nodes: [
     { id: 'screen:order-list', label: '受注一覧', kind: 'Screen' },
-    { id: 'screen:order-new', label: '受注登録', kind: 'Screen' },
+    { id: 'screen:order-new', label: '受注登録', kind: 'Screen', href: '/io?unit=fn%3Aregister-order' },
     { id: 'screen:order-done', label: '登録完了', kind: 'Screen' },
   ],
   edges: [

@@ -2,6 +2,9 @@ import { GraphView } from '@/components/graph/GraphView';
 import { SCREEN_SAMPLE } from '@/features/screen-analysis/sample';
 import { getScreenGraph } from '@/server/neo4j/repositories/screen-repository';
 
+// Neo4j を毎リクエスト参照するため静的プリレンダリングしない
+export const dynamic = 'force-dynamic';
+
 export default async function ScreenAnalysisPage() {
   let data = SCREEN_SAMPLE;
   let fallback = true;
