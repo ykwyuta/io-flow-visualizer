@@ -1,0 +1,122 @@
+/* SQL Server の実行計画風ツリー。根を左、子を右へ展開する横方向ツリー。 */
+
+.tree {
+  overflow-x: auto;
+  padding: 24px 16px;
+}
+
+.subtree {
+  display: flex;
+  align-items: center;
+}
+
+.nodeBox {
+  border: 1px solid #cbd5e1;
+  border-top-width: 4px;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #ffffff;
+  min-width: 150px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  font-size: 13px;
+}
+
+/* 演算子グループごとの色 */
+.scan {
+  border-top-color: #2563eb;
+}
+.shape {
+  border-top-color: #7c3aed;
+}
+.write {
+  border-top-color: #dc2626;
+}
+.control {
+  border-top-color: #6b7280;
+}
+.resource {
+  border-top-color: #059669;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+.icon {
+  font-size: 15px;
+}
+.type {
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.label {
+  margin-top: 2px;
+  color: #334155;
+}
+.stats {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #64748b;
+}
+.targets {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.target {
+  font-size: 11px;
+  border-radius: 4px;
+  padding: 1px 4px;
+  width: fit-content;
+}
+.read {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+.write_mode {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+/* --- コネクタ --- */
+.children {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  margin-left: 40px;
+  position: relative;
+}
+/* 子をまとめる縦のバス */
+.children::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: 0;
+  bottom: 0;
+  border-left: 2px solid #94a3b8;
+}
+/* 親からバスへの横線 */
+.children::after {
+  content: '';
+  position: absolute;
+  left: -40px;
+  top: 50%;
+  width: 20px;
+  border-top: 2px solid #94a3b8;
+}
+.child {
+  position: relative;
+}
+/* バスから各子への横線 */
+.child::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: 50%;
+  width: 20px;
+  border-top: 2px solid #94a3b8;
+}

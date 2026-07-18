@@ -1,0 +1,18 @@
+# ローカル検証用 Neo4j。
+# 起動後、以下で schema と seed を適用する:
+#   cat schema/constraints.cypher schema/indexes.cypher seed/sample.cypher \
+#     | docker exec -i io-flow-neo4j cypher-shell -u neo4j -p password
+services:
+  neo4j:
+    image: neo4j:5
+    container_name: io-flow-neo4j
+    ports:
+      - "7474:7474" # HTTP (Neo4j Browser)
+      - "7687:7687" # Bolt
+    environment:
+      NEO4J_AUTH: neo4j/password
+    volumes:
+      - neo4j-data:/data
+
+volumes:
+  neo4j-data:
