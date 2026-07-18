@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server';
-import { readQuery } from '@/server/neo4j/driver';
+import { getScreenGraph } from '@/server/neo4j/repositories/screen-repository';
 
 /**
  * 画面関係分析モード用データ取得。
- * Screen 間の TRANSITIONS_TO を返す。
+ * Screen 間の TRANSITIONS_TO をグラフ（nodes/edges）で返す。
  */
 export async function GET() {
-  const rows = await readQuery(
-    `MATCH (a:Screen)-[r:TRANSITIONS_TO]->(b:Screen) RETURN a, r, b`,
-  );
-  return NextResponse.json({ rows });
+  const graph = await getScreenGraph();
+  return NextResponse.json({ graph });
 }
