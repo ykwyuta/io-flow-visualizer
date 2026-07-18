@@ -44,3 +44,35 @@
 - 段階的に分割してコミットした（docs → graph-model → neo4j → Next.js雛形 → メタ更新）。
 - npm install / 実際の Neo4j 接続確認は未実施（雛形段階）。可視化ライブラリ（React Flow/Cytoscape 等）は未選定。
 - スキル・サブエージェント本体は未作成のため .claude/logs/skills-日時.log への記録は無し。
+
+
+[2026-07-18 12:01:43] 追記: IO分析モードの実装
+
+■ 指摘の要約
+- 「続行」。可視化ライブラリを選定し、まず1モード（IO分析＝実行計画ツリー）を実装する。
+
+■ 設計判断
+- IO実行計画ツリーは外部ライブラリを使わず自作レンダラで描画（SQL Server実行計画風の見た目に合致し自己完結）。
+  依存・画面モードのノードリンク図には React Flow を将来採用予定とし、今回は未追加。
+- DB未接続でも描画できるよう、neo4j/seed/sample.cypher と一致するサンプルへフォールバックする構成にした。
+
+■ 実施した作業
+- src/features/io-analysis/: types.ts（PlanTree/PlanNodeビューモデル）、sample.ts（フォールバック）、operation-meta.ts（演算子/対象のアイコン・色）。
+- src/server/neo4j/: queries/io.ts（Cypher）、repositories/io-repository.ts（フラットな行→ツリー組立）、driver.ts に disableLosslessIntegers を追加。
+- src/components/plan/: PlanTree.tsx（再帰レンダラ）、PlanTree.module.css（実行計画風の横ツリー＋コネクタ）。
+- src/app/io/page.tsx: 処理単位一覧＋実行計画ツリー表示。DB未接続時はサンプル＋注意バナー。
+
+■ 検証
+- npm install 成功。tsc --noEmit（型チェック）成功。next build 成功（全12ルート）。
+- next start で /io を起動し HTTP 200・サンプル実行計画ツリー（open→if→scan/insert/update, commit、read/write対象、推定行数1,000）の描画を確認。
+
+■ 変更したファイル
+- src/features/io-analysis/{types,sample,operation-meta}.ts
+- src/server/neo4j/queries/io.ts, src/server/neo4j/repositories/io-repository.ts, src/server/neo4j/driver.ts
+- src/components/plan/PlanTree.tsx, src/components/plan/PlanTree.module.css
+- src/app/io/page.tsx
+- package-lock.json（依存固定）
+
+■ 補足・残タスク
+- 依存関係分析モード / 画面関係分析モード は未実装（React Flow 採用予定）。
+- 実 Neo4j への接続確認は未実施（サンプルフォールバックで描画検証）。
