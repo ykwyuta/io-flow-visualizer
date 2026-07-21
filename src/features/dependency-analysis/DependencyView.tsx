@@ -27,23 +27,31 @@ export async function DependencyView({ granularity }: { granularity: DependencyG
 
   return (
     <div>
-      <h1>依存関係分析モード — {current?.label}</h1>
-      <nav style={{ display: 'flex', gap: 12, flexWrap: 'wrap', margin: '8px 0' }}>
+      <div className="eyebrow">依存関係分析</div>
+      <h1 className="page-title" style={{ marginTop: 6 }}>
+        {current?.label}
+      </h1>
+      <p className="page-subtitle">
+        粒度を切り替えて依存関係を可視化します。IO 実行計画を持つノードは ↗ からドリルダウンできます。
+      </p>
+
+      <nav className="pill-nav">
         {TABS.map((t) => (
-          <Link
-            key={t.g}
-            href={t.href}
-            style={{ fontWeight: t.g === granularity ? 700 : 400 }}
-          >
+          <Link key={t.g} href={t.href} className={`pill${t.g === granularity ? ' active' : ''}`}>
             {t.label}
           </Link>
         ))}
       </nav>
 
       {fallback && (
-        <p style={{ background: '#fffbeb', border: '1px solid #fde68a', padding: 8, borderRadius: 6 }}>
-          Neo4j に接続できないか対象データが無いため、サンプル（neo4j/seed/sample.cypher）を表示しています。
-        </p>
+        <div className="banner banner-warn">
+          <span className="banner-ico" aria-hidden>
+            ⚠
+          </span>
+          <span>
+            Neo4j に接続できないか対象データが無いため、サンプル（neo4j/seed/sample.cypher）を表示しています。
+          </span>
+        </div>
       )}
 
       <GraphView data={data} direction="LR" />

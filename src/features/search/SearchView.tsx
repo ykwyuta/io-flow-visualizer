@@ -14,65 +14,39 @@ const PAGE_SIZE = 20;
 
 type Tab = 'filter' | 'cypher';
 
-const banner = (bg: string, border: string): React.CSSProperties => ({
-  background: bg,
-  border: `1px solid ${border}`,
-  padding: 8,
-  borderRadius: 6,
-  fontSize: 13,
-  margin: '8px 0',
-});
-
 export function SearchView({ initialFocus }: { initialFocus?: string }) {
   const [tab, setTab] = useState<Tab>('filter');
 
   return (
     <div>
-      <h1>検索システム</h1>
-      <p style={{ fontSize: 14, color: '#475569' }}>
+      <div className="eyebrow">検索システム</div>
+      <h1 className="page-title" style={{ marginTop: 6 }}>
+        グラフを検索する
+      </h1>
+      <p className="page-subtitle">
         巨大なアプリケーションでも通用するよう、全件をロードせず境界付き（ページング／近傍）で探索します。
-        検索窓・種別での絞り込みと、グラフDBへの Cypher 直接投入の両方に対応します。
+        検索窓・種別での絞り込みと、グラフDBへの Cypher 直接クエリの両方に対応します。
       </p>
 
-      <nav style={{ display: 'flex', gap: 8, margin: '12px 0', borderBottom: '1px solid #e2e8f0' }}>
-        <TabButton active={tab === 'filter'} onClick={() => setTab('filter')}>
+      <div className="tabs">
+        <button
+          type="button"
+          className={`tab${tab === 'filter' ? ' active' : ''}`}
+          onClick={() => setTab('filter')}
+        >
           絞り込み検索
-        </TabButton>
-        <TabButton active={tab === 'cypher'} onClick={() => setTab('cypher')}>
+        </button>
+        <button
+          type="button"
+          className={`tab${tab === 'cypher' ? ' active' : ''}`}
+          onClick={() => setTab('cypher')}
+        >
           Cypher 直接クエリ
-        </TabButton>
-      </nav>
+        </button>
+      </div>
 
       {tab === 'filter' ? <FilterSearch initialFocus={initialFocus} /> : <CypherSearch />}
     </div>
-  );
-}
-
-function TabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        padding: '8px 14px',
-        border: 'none',
-        borderBottom: active ? '2px solid #2563eb' : '2px solid transparent',
-        background: 'transparent',
-        fontWeight: active ? 700 : 400,
-        cursor: 'pointer',
-        fontSize: 14,
-      }}
-    >
-      {children}
-    </button>
   );
 }
 
@@ -107,12 +81,10 @@ function FilterSearch({ initialFocus }: { initialFocus?: string }) {
     }
   }, []);
 
-  // 初回・条件変更時に検索
   useEffect(() => {
     runSearch(submitted, kinds, offset);
   }, [submitted, kinds, offset, runSearch]);
 
-  // 近傍フォーカス（URL の ?focus= からのドリルダウン）
   useEffect(() => {
     setFocusId(initialFocus);
   }, [initialFocus]);
@@ -130,68 +102,72 @@ function FilterSearch({ initialFocus }: { initialFocus?: string }) {
 
   return (
     <div>
-      <form onSubmit={onSubmit} style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <input
-          type="text"
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          placeholder="キーワード（ノード名 / パス / id を全文検索）"
-          style={{
-            flex: '1 1 320px',
-            padding: '8px 10px',
-            border: '1px solid #cbd5e1',
-            borderRadius: 6,
-            fontSize: 14,
-          }}
-        />
-        <button
-          type="submit"
-          style={{
-            padding: '8px 16px',
-            border: 'none',
-            background: '#2563eb',
-            color: '#fff',
-            borderRadius: 6,
-            cursor: 'pointer',
-            fontSize: 14,
-          }}
-        >
+      <form onSubmit={onSubmit} className="row" style={{ gap: 10 }}>
+        <div className="search-field">
+          <span className="search-icon" aria-hidden>
+            🔎
+          </span>
+          <input
+            type="text"
+            className="input"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            placeholder="キーワード（ノード名 / パス / id を全文検索）"
+          />
+        </div>
+        <button type="submit" className="btn btn-primary">
           検索
         </button>
       </form>
 
       {data && (
-        <FacetFilter facets={data.facets} selected={kinds} onToggle={toggleKind} approx={data.facetsApprox} />
+        <FacetFilter
+          facets={data.facets}
+          selected={kinds}
+          onToggle={toggleKind}
+          approx={data.facetsApprox}
+        />
       )}
 
       {data?.fallback && (
-        <p style={banner('#fffbeb', '#fde68a')}>
-          Neo4j に接続できないため、サンプル（neo4j/seed/sample.cypher）で検索しています。
-        </p>
+        <div className="banner banner-warn">
+          <span className="banner-ico" aria-hidden>
+            ⚠
+          </span>
+          <span>Neo4j に接続できないため、サンプル（neo4j/seed/sample.cypher）で検索しています。</span>
+        </div>
       )}
       {data && !data.fallback && !data.fulltext && submitted.trim() !== '' && (
-        <p style={banner('#f0f9ff', '#bae6fd')}>
-          全文検索インデックス（nodeSearch）が未作成のため、CONTAINS 検索で代替しています。
-          大規模データでは neo4j/schema/indexes.cypher の適用を推奨します。
-        </p>
+        <div className="banner banner-info">
+          <span className="banner-ico" aria-hidden>
+            ℹ
+          </span>
+          <span>
+            全文検索インデックス（nodeSearch）が未作成のため CONTAINS 検索で代替しています。大規模データでは
+            neo4j/schema/indexes.cypher の適用を推奨します。
+          </span>
+        </div>
       )}
-      {error && <p style={banner('#fef2f2', '#fecaca')}>{error}</p>}
+      {error && (
+        <div className="banner banner-error">
+          <span className="banner-ico" aria-hidden>
+            ⚠
+          </span>
+          <span>{error}</span>
+        </div>
+      )}
 
-      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-        <div style={{ flex: '1 1 380px', minWidth: 320 }}>
-          <ResultList
-            data={data}
-            loading={loading}
-            offset={offset}
-            onPrev={() => setOffset((o) => Math.max(0, o - PAGE_SIZE))}
-            onNext={() => setOffset((o) => o + PAGE_SIZE)}
-            onFocus={setFocusId}
-            focusId={focusId}
-          />
-        </div>
-        <div style={{ flex: '2 1 480px', minWidth: 360 }}>
-          {focusId && <Neighborhood id={focusId} />}
-        </div>
+      <div className="search-layout">
+        <ResultList
+          data={data}
+          loading={loading}
+          offset={offset}
+          onPrev={() => setOffset((o) => Math.max(0, o - PAGE_SIZE))}
+          onNext={() => setOffset((o) => o + PAGE_SIZE)}
+          onFocus={setFocusId}
+          focusId={focusId}
+        />
+        <div>{focusId && <Neighborhood id={focusId} />}</div>
       </div>
     </div>
   );
@@ -210,29 +186,21 @@ function FacetFilter({
 }) {
   if (facets.length === 0) return null;
   return (
-    <div style={{ margin: '10px 0' }}>
-      <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>
-        種別で絞り込み{approx ? '（件数は概算）' : ''}:
+    <div style={{ marginTop: 14 }}>
+      <div className="subtle" style={{ fontSize: 12, marginBottom: 2 }}>
+        種別で絞り込み{approx ? '（件数は概算）' : ''}
       </div>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      <div className="facet-bar">
         {facets.map((f) => {
           const active = selected.includes(f.kind);
           return (
             <button
               key={f.kind}
               type="button"
+              className={`chip${active ? ' active' : ''}`}
               onClick={() => onToggle(f.kind)}
-              style={{
-                padding: '4px 10px',
-                border: `1px solid ${active ? '#2563eb' : '#cbd5e1'}`,
-                background: active ? '#eff6ff' : '#fff',
-                color: active ? '#1d4ed8' : '#334155',
-                borderRadius: 999,
-                cursor: 'pointer',
-                fontSize: 12,
-              }}
             >
-              {f.kind} <span style={{ color: '#94a3b8' }}>({f.count})</span>
+              {f.kind} <span className="count">{f.count}</span>
             </button>
           );
         })}
@@ -258,29 +226,44 @@ function ResultList({
   onFocus: (id: string) => void;
   focusId?: string;
 }) {
-  if (loading && !data) return <p style={{ color: '#64748b' }}>検索中…</p>;
-  if (!data) return null;
+  if (loading && !data) {
+    return (
+      <div className="muted" style={{ padding: 8 }}>
+        <span className="spinner" /> 検索中…
+      </div>
+    );
+  }
+  if (!data) return <div />;
   if (data.results.length === 0) {
-    return <p style={{ color: '#64748b' }}>該当するノードがありません。</p>;
+    return (
+      <div className="card card-pad muted" style={{ textAlign: 'center' }}>
+        該当するノードがありません。
+      </div>
+    );
   }
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: 12, color: '#64748b' }}>
+      <div className="between">
+        <span className="count-line">
           {offset + 1}–{offset + data.results.length} 件目
-          {loading ? '（更新中…）' : ''}
+          {loading && (
+            <>
+              {' '}
+              <span className="spinner" />
+            </>
+          )}
         </span>
         <span style={{ display: 'flex', gap: 6 }}>
-          <PagerButton disabled={offset === 0} onClick={onPrev}>
+          <button type="button" className="btn btn-sm" disabled={offset === 0} onClick={onPrev}>
             ← 前へ
-          </PagerButton>
-          <PagerButton disabled={!data.hasMore} onClick={onNext}>
+          </button>
+          <button type="button" className="btn btn-sm" disabled={!data.hasMore} onClick={onNext}>
             次へ →
-          </PagerButton>
+          </button>
         </span>
       </div>
-      <ul style={{ listStyle: 'none', padding: 0, margin: '8px 0' }}>
+      <ul className="result-list">
         {data.results.map((r) => (
           <ResultItem key={r.id} r={r} active={r.id === focusId} onFocus={onFocus} />
         ))}
@@ -300,80 +283,35 @@ function ResultItem({
 }) {
   return (
     <li
-      style={{
-        border: `1px solid ${active ? '#2563eb' : '#e2e8f0'}`,
-        background: active ? '#eff6ff' : '#fff',
-        borderRadius: 8,
-        padding: 10,
-        marginBottom: 6,
+      className={`result-item${active ? ' active' : ''}`}
+      onClick={() => onFocus(r.id)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onFocus(r.id);
+        }
       }}
+      role="button"
+      tabIndex={0}
     >
-      <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' }}>
-        <span
-          style={{
-            fontSize: 11,
-            padding: '2px 6px',
-            borderRadius: 4,
-            background: '#f1f5f9',
-            color: '#475569',
-          }}
-        >
-          {r.kind}
-        </span>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+        <span className="badge">{r.kind}</span>
         <strong style={{ fontSize: 14 }}>{r.label}</strong>
       </div>
-      <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2, wordBreak: 'break-all' }}>{r.id}</div>
-      <div style={{ display: 'flex', gap: 12, marginTop: 6, fontSize: 12 }}>
-        <button
-          type="button"
-          onClick={() => onFocus(r.id)}
-          style={{
-            border: 'none',
-            background: 'transparent',
-            color: '#2563eb',
-            cursor: 'pointer',
-            padding: 0,
-            fontSize: 12,
-          }}
-        >
-          近傍グラフを表示
-        </button>
+      <div className="result-id">{r.id}</div>
+      <div className="result-actions">
+        <span style={{ color: 'var(--accent)', fontWeight: 600 }}>近傍グラフを表示 →</span>
         {r.ioHref && (
-          <a href={r.ioHref} style={{ color: '#ea580c' }}>
+          <a
+            href={r.ioHref}
+            style={{ color: '#ea580c' }}
+            onClick={(e) => e.stopPropagation()}
+          >
             IO 実行計画へ ↗
           </a>
         )}
       </div>
     </li>
-  );
-}
-
-function PagerButton({
-  disabled,
-  onClick,
-  children,
-}: {
-  disabled: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        padding: '4px 10px',
-        border: '1px solid #cbd5e1',
-        background: disabled ? '#f8fafc' : '#fff',
-        color: disabled ? '#cbd5e1' : '#334155',
-        borderRadius: 6,
-        cursor: disabled ? 'default' : 'pointer',
-        fontSize: 12,
-      }}
-    >
-      {children}
-    </button>
   );
 }
 
@@ -407,13 +345,30 @@ function Neighborhood({ id }: { id: string }) {
 
   return (
     <div>
-      <div style={{ fontSize: 13, fontWeight: 700, margin: '4px 0' }}>近傍グラフ（★ = 中心 / クリックで展開）</div>
-      {loading && <p style={{ color: '#64748b' }}>読み込み中…</p>}
-      {error && <p style={banner('#fef2f2', '#fecaca')}>{error}</p>}
-      {data && data.graph.nodes.length === 0 && (
-        <p style={{ color: '#64748b' }}>このノードに隣接する要素がありません。</p>
+      <div className="panel-label">
+        近傍グラフ <span className="subtle" style={{ fontWeight: 400 }}>（★ = 中心 / クリックで展開）</span>
+      </div>
+      {loading && (
+        <div className="muted" style={{ padding: 8 }}>
+          <span className="spinner" /> 読み込み中…
+        </div>
       )}
-      {data && data.graph.nodes.length > 0 && <GraphView data={data.graph} direction="LR" />}
+      {error && (
+        <div className="banner banner-error">
+          <span className="banner-ico" aria-hidden>
+            ⚠
+          </span>
+          <span>{error}</span>
+        </div>
+      )}
+      {data && data.graph.nodes.length === 0 && !loading && (
+        <div className="card card-pad muted" style={{ textAlign: 'center' }}>
+          このノードに隣接する要素がありません。
+        </div>
+      )}
+      {data && data.graph.nodes.length > 0 && (
+        <GraphView data={data.graph} direction="LR" compact />
+      )}
     </div>
   );
 }
@@ -466,64 +421,49 @@ function CypherSearch() {
 
   return (
     <div>
-      <p style={{ fontSize: 13, color: '#475569' }}>
+      <p className="muted" style={{ fontSize: 13, marginTop: 0 }}>
         グラフDBへ Cypher を直接投入します（<strong>読み取り専用</strong>。書き込み系キーワードは拒否、
         実行はタイムアウトと行数上限で保護）。
       </p>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '6px 0' }}>
+      <div className="example-bar">
         {CYPHER_EXAMPLES.map((ex) => (
           <button
             key={ex.label}
             type="button"
+            className="chip"
             onClick={() => setCypher(ex.cypher)}
-            style={{
-              padding: '4px 10px',
-              border: '1px solid #cbd5e1',
-              background: '#fff',
-              borderRadius: 999,
-              cursor: 'pointer',
-              fontSize: 12,
-            }}
           >
             {ex.label}
           </button>
         ))}
       </div>
       <textarea
+        className="textarea"
         value={cypher}
         onChange={(e) => setCypher(e.target.value)}
         rows={6}
         spellCheck={false}
-        style={{
-          width: '100%',
-          fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-          fontSize: 13,
-          padding: 10,
-          border: '1px solid #cbd5e1',
-          borderRadius: 6,
-          boxSizing: 'border-box',
-        }}
       />
-      <div style={{ margin: '6px 0' }}>
-        <button
-          type="button"
-          onClick={run}
-          disabled={loading}
-          style={{
-            padding: '8px 16px',
-            border: 'none',
-            background: loading ? '#93c5fd' : '#2563eb',
-            color: '#fff',
-            borderRadius: 6,
-            cursor: loading ? 'default' : 'pointer',
-            fontSize: 14,
-          }}
-        >
-          {loading ? '実行中…' : '実行'}
+      <div style={{ margin: '10px 0' }}>
+        <button type="button" className="btn btn-primary" onClick={run} disabled={loading}>
+          {loading ? (
+            <>
+              <span className="spinner" /> 実行中…
+            </>
+          ) : (
+            '実行'
+          )}
         </button>
       </div>
 
-      {error && <p style={banner('#fef2f2', '#fecaca')}>{error}</p>}
+      {error && (
+        <div className="banner banner-error">
+          <span className="banner-ico" aria-hidden>
+            ⚠
+          </span>
+          <span>{error}</span>
+        </div>
+      )}
       {data && <CypherResult data={data} />}
     </div>
   );
@@ -531,32 +471,24 @@ function CypherSearch() {
 
 function CypherResult({ data }: { data: RawCypherResponse }) {
   if (data.rows.length === 0) {
-    return <p style={{ color: '#64748b' }}>結果は 0 行です。</p>;
+    return <div className="card card-pad muted">結果は 0 行です。</div>;
   }
   return (
     <div>
       {data.truncated && (
-        <p style={banner('#fffbeb', '#fde68a')}>
-          結果が多いため先頭 1000 行のみ表示しています。LIMIT の付与を検討してください。
-        </p>
+        <div className="banner banner-warn">
+          <span className="banner-ico" aria-hidden>
+            ⚠
+          </span>
+          <span>結果が多いため先頭 1000 行のみ表示しています。LIMIT の付与を検討してください。</span>
+        </div>
       )}
-      <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: 8 }}>
-        <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 12 }}>
+      <div className="table-wrap">
+        <table className="table">
           <thead>
             <tr>
               {data.keys.map((k) => (
-                <th
-                  key={k}
-                  style={{
-                    textAlign: 'left',
-                    padding: '6px 10px',
-                    borderBottom: '2px solid #e2e8f0',
-                    background: '#f8fafc',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {k}
-                </th>
+                <th key={k}>{k}</th>
               ))}
             </tr>
           </thead>
@@ -564,24 +496,16 @@ function CypherResult({ data }: { data: RawCypherResponse }) {
             {data.rows.map((row, i) => (
               <tr key={i}>
                 {data.keys.map((k) => (
-                  <td
-                    key={k}
-                    style={{
-                      padding: '6px 10px',
-                      borderBottom: '1px solid #f1f5f9',
-                      verticalAlign: 'top',
-                      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-                    }}
-                  >
-                    {renderCell(row[k])}
-                  </td>
+                  <td key={k}>{renderCell(row[k])}</td>
                 ))}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>{data.rows.length} 行</div>
+      <div className="count-line" style={{ marginTop: 6 }}>
+        {data.rows.length} 行
+      </div>
     </div>
   );
 }

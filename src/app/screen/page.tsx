@@ -20,13 +20,23 @@ export default async function ScreenAnalysisPage() {
 
   return (
     <div>
-      <h1>画面関係分析モード</h1>
-      <p>Screen 間の TRANSITIONS_TO（遷移のきっかけを矢印ラベルに表示）を遷移図で描画します。</p>
+      <div className="eyebrow">画面関係分析</div>
+      <h1 className="page-title" style={{ marginTop: 6 }}>
+        画面遷移
+      </h1>
+      <p className="page-subtitle">
+        Screen 間の TRANSITIONS_TO を有向グラフで描画します（遷移のきっかけを矢印ラベルに表示）。
+      </p>
 
       {fallback && (
-        <p style={{ background: '#fffbeb', border: '1px solid #fde68a', padding: 8, borderRadius: 6 }}>
-          Neo4j に接続できないか対象データが無いため、サンプル（neo4j/seed/sample.cypher）を表示しています。
-        </p>
+        <div className="banner banner-warn">
+          <span className="banner-ico" aria-hidden>
+            ⚠
+          </span>
+          <span>
+            Neo4j に接続できないか対象データが無いため、サンプル（neo4j/seed/sample.cypher）を表示しています。
+          </span>
+        </div>
       )}
 
       <GraphView data={data} direction="TB" />
