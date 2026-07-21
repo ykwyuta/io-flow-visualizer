@@ -1,4 +1,5 @@
 import 'server-only';
+import { int } from 'neo4j-driver';
 import type { GraphData } from '@/components/graph/types';
 import {
   SEARCH_SAMPLE_EDGES,
@@ -94,8 +95,13 @@ export async function structuredSearch(params: SearchParams): Promise<SearchResp
       try {
         const lucene = toLucene(q);
         const [rows, facetRows] = await Promise.all([
-          readQuery<ResultRow>(FULLTEXT_SEARCH, { lucene, kinds, offset, limit: fetchLimit }),
-          readQuery<Facet>(FULLTEXT_FACETS, { lucene, facetCap: FACET_CAP }),
+          readQuery<ResultRow>(FULLTEXT_SEARCH, {
+            lucene,
+            kinds,
+            offset: int(offset),
+            limit: int(fetchLimit),
+          }),
+          readQuery<Facet>(FULLTEXT_FACETS, { lucene, facetCap: int(FACET_CAP) }),
         ]);
         const res = buildResponse(rows, facetRows, limit, true);
         await annotateIoHref(res.results);
@@ -111,13 +117,13 @@ export async function structuredSearch(params: SearchParams): Promise<SearchResp
         q: q.trim().toLowerCase(),
         searchable: [...SEARCHABLE_LABELS],
         kinds,
-        offset,
-        limit: fetchLimit,
+        offset: int(offset),
+        limit: int(fetchLimit),
       }),
       readQuery<Facet>(CONTAINS_FACETS, {
         q: q.trim().toLowerCase(),
         searchable: [...SEARCHABLE_LABELS],
-        facetCap: FACET_CAP,
+        facetCap: int(FACET_CAP),
       }),
     ]);
     const res = buildResponse(rows, facetRows, limit, false);
@@ -189,7 +195,7 @@ interface NeighborRow {
 /** 指定ノードの近傍（1 ホップ）を境界付きで取得し、グラフに整形する。 */
 export async function getNeighborhood(id: string, limit: number): Promise<NeighborhoodResponse> {
   try {
-    const rows = await readQuery<NeighborRow>(NEIGHBORHOOD, { id, limit });
+    const rows = await readQuery<NeighborRow>(NEIGHBORHOOD, { id, limit: int(limit) });
     if (rows.length === 0) return sampleNeighborhood(id);
 
     const graph = assembleNeighborhood(id, rows);

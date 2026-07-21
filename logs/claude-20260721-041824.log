@@ -1,0 +1,43 @@
+[2026-07-21 04:18:24] 大規模アプリ対応の検索システム追加
+
+## 指摘の要約
+- いまの実装は巨大なアプリケーションの分析に適さない。
+- 巨大アプリでも通用する検索システムを追加する。
+- 「検索窓・選択肢からの絞り込み」と「グラフDBへクエリを投げる方法」の両方に対応する。
+
+## 実施した作業
+1. スケーラビリティ設計
+   - 全件ロードを避け、常に境界付き（LIMIT/SKIP ページング、LIMIT+1 で次ページ判定）で返す。
+   - キーワード検索は全文検索インデックス nodeSearch を利用。無ければ CONTAINS にフォールバック。
+   - ドリルダウンは 1 ホップ近傍のみを境界付きで取得。
+   - ファセット件数は集計前に上限(2000)を掛けて概算化。
+2. 絞り込み検索
+   - 検索窓（name/label/path/id を全文検索）＋種別（ラベル）ファセット（複数選択）＋ページング。
+   - 結果から近傍グラフ表示、IO 実行計画保持ノードは IO 分析モードへ横断リンク。
+3. Cypher 直接クエリ
+   - グラフDBへ読み取り専用で Cypher を投入。結果を表形式表示（Node/Relationship を整形）。
+   - 多層防御: READ セッション、書き込みキーワード拒否、トランザクションタイムアウト(5s)、行数上限(1000)。
+4. Neo4j 未接続時はサンプル(neo4j/seed/sample.cypher 相当)で in-memory 検索・近傍にフォールバック。
+5. SKIP/LIMIT パラメータは neo4j.int() で整数化（素の JS number は Float になり LIMIT で拒否されるため）。
+6. ドキュメント・導線を整備。
+
+## 変更したファイル
+- neo4j/schema/indexes.cypher（全文検索インデックス nodeSearch を追加）
+- src/server/neo4j/driver.ts（読み取り専用の生Cypher実行 readRawQuery と値シリアライザを追加）
+- src/server/neo4j/queries/search.ts（新規: 検索用 Cypher）
+- src/server/neo4j/repositories/search-repository.ts（新規: 検索/近傍のロジックとフォールバック）
+- src/features/search/types.ts（新規: 型）
+- src/features/search/sample.ts（新規: フォールバック用サンプル）
+- src/features/search/SearchView.tsx（新規: 検索UI）
+- src/app/search/page.tsx（新規: 検索ページ）
+- src/app/api/search/route.ts（新規: 絞り込み検索API）
+- src/app/api/search/neighborhood/route.ts（新規: 近傍API）
+- src/app/api/search/cypher/route.ts（新規: 生CypherAPI・読み取り専用ガード）
+- src/app/layout.tsx / src/app/page.tsx（検索への導線を追加）
+- docs/search-system.md（新規: 設計ドキュメント）
+- docs/analysis-modes.md / README.md（検索システムへの参照を追加）
+
+## 補足事項
+- 全文検索の解析器は標準のため日本語の分割精度は限定的。取りこぼし時は CONTAINS/Cypher を併用する。
+- Docker デーモンが本環境で利用不可のため、実 Neo4j での通し確認は未実施。
+  型チェック（tsc --noEmit）・本番ビルド（next build）・サンプルフォールバック経由の API 動作は確認済み。
