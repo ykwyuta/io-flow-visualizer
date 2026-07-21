@@ -1,0 +1,39 @@
+[2026-07-21 04:38:27] UI の洗練（デザインシステム導入・全画面刷新・ダークモード対応）
+
+## 指摘の要約
+- いまの UI は必須の画面機能に特化しすぎ。より洗練された UI を実装してほしい。
+
+## 実施した作業
+1. デザインシステムを新設（src/app/globals.css）
+   - デザイントークン（色/サーフェス/境界/テキスト/アクセント/半径/影/フォント）を CSS 変数で定義。
+   - prefers-color-scheme によるライト／ダーク両テーマ対応。
+   - 共通コンポーネントクラス（header/nav/card/btn/input/chip/badge/banner/tabs/pill/table/
+     spinner/graph-canvas 等）を用意し、インラインスタイルを置き換え。
+2. ヘッダーを刷新（TopNav をクライアント化し現在地をアクティブ表示）。ブランドマーク追加。
+3. トップページをヒーロー＋カードグリッドに刷新（ホバーで浮き上がる導線）。
+4. グラフ（GraphView）をカード型カスタムノードに刷新
+   - 左に種別カラーバー、種別ラベル、ドリルダウン ↗ 表示、ホバー演出。
+   - React Flow を colorMode="system"、Dots 背景、コントロールをテーマ連動に。
+   - IO対象系ラベルの色を追加。
+5. 実行計画ツリー（PlanTree）をテーマ変数化し、カード内に格納・余白と階調を調整。
+6. 検索 UI（SearchView）を全面的にクラスベースへ刷新
+   - 検索窓（アイコン付き）、ファセットをチップ化、結果をカードリスト化＋選択ハイライト、
+     2 カラムのレスポンシブレイアウト、スピナー、バナー、結果テーブルを整形。
+7. 各モードページ（IO/依存/画面）に eyebrow＋タイトル＋サブタイトル、pill ナビ、統一バナーを適用。
+
+## 変更したファイル
+- src/app/globals.css（新規: デザインシステム）
+- src/components/layout/TopNav.tsx（新規: アクティブ対応ヘッダー）
+- src/app/layout.tsx（globals.css 読込・TopNav・main コンテナ）
+- src/app/page.tsx（ヒーロー＋カードグリッド）
+- src/components/graph/GraphView.tsx（カード型ノード・テーマ連動）
+- src/components/plan/PlanTree.tsx / PlanTree.module.css（テーマ変数化・整形）
+- src/features/search/SearchView.tsx（デザインシステムで全面刷新）
+- src/features/dependency-analysis/DependencyView.tsx（見出し・pill・バナー）
+- src/app/io/page.tsx / src/app/screen/page.tsx（見出し・pill・バナー・カード）
+
+## 補足事項
+- 型チェック（tsc --noEmit）・本番ビルド（next build）成功。
+- Chromium（プリインストール）＋ playwright-core でライト／ダーク両テーマのスクリーンショットを取得し、
+  ホーム・検索（近傍グラフ）・IO 実行計画・依存関係グラフの表示を目視確認済み。
+- 既存の機能・ルーティング・API は変更していない（見た目のみの刷新）。

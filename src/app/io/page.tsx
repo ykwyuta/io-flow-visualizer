@@ -46,24 +46,37 @@ export default async function IoAnalysisPage({
   const { unit } = await searchParams;
   const { tree, units, screens, fallback } = await load(unit);
 
+  const selectedId = tree?.rootUnit.id;
+
   return (
     <div>
-      <h1>IO分析モード</h1>
-      <p>
-        IO処理構造を実行計画ツリー（EXECUTES を根に CHILD で連なる IOOperation ＋ ACCESSES 対象）として
-        描画します。
+      <div className="eyebrow">IO 分析</div>
+      <h1 className="page-title" style={{ marginTop: 6 }}>
+        IO 実行計画
+      </h1>
+      <p className="page-subtitle">
+        EXECUTES を根に CHILD で連なる IOOperation と ACCESSES 対象を、SQL の実行計画のようなツリーで描画します。
       </p>
 
       {fallback && (
-        <p style={{ background: '#fffbeb', border: '1px solid #fde68a', padding: 8, borderRadius: 6 }}>
-          Neo4j に接続できないか対象データが無いため、サンプル（neo4j/seed/sample.cypher）を表示しています。
-        </p>
+        <div className="banner banner-warn">
+          <span className="banner-ico" aria-hidden>
+            ⚠
+          </span>
+          <span>
+            Neo4j に接続できないか対象データが無いため、サンプル（neo4j/seed/sample.cypher）を表示しています。
+          </span>
+        </div>
       )}
 
       {units.length > 0 && (
-        <nav style={{ display: 'flex', gap: 12, flexWrap: 'wrap', margin: '8px 0' }}>
+        <nav className="pill-nav">
           {units.map((u) => (
-            <Link key={u.id} href={`/io?unit=${encodeURIComponent(u.id)}`}>
+            <Link
+              key={u.id}
+              href={`/io?unit=${encodeURIComponent(u.id)}`}
+              className={`pill${u.id === selectedId ? ' active' : ''}`}
+            >
               {u.name}
             </Link>
           ))}
@@ -73,10 +86,10 @@ export default async function IoAnalysisPage({
       {tree && (
         <>
           {/* モード横断リンク */}
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', margin: '8px 0', fontSize: 13 }}>
+          <div className="row" style={{ gap: 16, margin: '4px 0 12px', fontSize: 13 }}>
             <Link href="/dependency/code">→ このコードを依存関係グラフで見る</Link>
             {screens.length > 0 && (
-              <span>
+              <span className="muted">
                 担当画面:{' '}
                 {screens.map((s, i) => (
                   <span key={s.id}>
@@ -87,7 +100,9 @@ export default async function IoAnalysisPage({
               </span>
             )}
           </div>
-          <PlanTreeView tree={tree} />
+          <div className="card" style={{ overflow: 'hidden' }}>
+            <PlanTreeView tree={tree} />
+          </div>
         </>
       )}
     </div>

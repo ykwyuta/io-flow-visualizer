@@ -4,6 +4,7 @@ import { useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Background,
+  BackgroundVariant,
   Controls,
   MarkerType,
   ReactFlow,
@@ -14,10 +15,10 @@ import '@xyflow/react/dist/style.css';
 import dagre from '@dagrejs/dagre';
 import type { GraphData } from './types';
 
-const NODE_W = 180;
-const NODE_H = 44;
+const NODE_W = 184;
+const NODE_H = 46;
 
-/** ノード種別ごとの色（上辺のアクセント） */
+/** ノード種別ごとの色（左のアクセントバー） */
 const KIND_COLOR: Record<string, string> = {
   System: '#2563eb',
   File: '#0891b2',
@@ -26,6 +27,12 @@ const KIND_COLOR: Record<string, string> = {
   Class: '#7c3aed',
   Method: '#9333ea',
   Function: '#c026d3',
+  Table: '#0284c7',
+  DataFile: '#0d9488',
+  ExternalSystem: '#d97706',
+  MessageQueue: '#db2777',
+  Session: '#059669',
+  IOOperation: '#6366f1',
   Screen: '#ea580c',
 };
 
@@ -33,7 +40,7 @@ const KIND_COLOR: Record<string, string> = {
 function layout(data: GraphData, direction: 'LR' | 'TB'): { nodes: Node[]; edges: Edge[] } {
   const g = new dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: direction, nodesep: 40, ranksep: 80 });
+  g.setGraph({ rankdir: direction, nodesep: 44, ranksep: 92 });
 
   for (const n of data.nodes) g.setNode(n.id, { width: NODE_W, height: NODE_H });
   for (const e of data.edges) g.setEdge(e.source, e.target);
@@ -41,19 +48,13 @@ function layout(data: GraphData, direction: 'LR' | 'TB'): { nodes: Node[]; edges
 
   const nodes: Node[] = data.nodes.map((n) => {
     const pos = g.node(n.id);
-    const color = KIND_COLOR[n.kind] ?? '#475569';
+    const color = KIND_COLOR[n.kind] ?? '#64748b';
     return {
       id: n.id,
       position: { x: pos.x - NODE_W / 2, y: pos.y - NODE_H / 2 },
-      data: { label: n.href ? `${n.label} ↗` : n.label, href: n.href },
-      style: {
-        width: NODE_W,
-        borderTop: `4px solid ${color}`,
-        borderRadius: 8,
-        fontSize: 12,
-        background: '#ffffff',
-        cursor: n.href ? 'pointer' : 'default',
-      },
+      data: { label: n.label, kind: n.kind, color, href: n.href },
+      type: 'flowCard',
+      style: { width: NODE_W },
     };
   });
 
@@ -62,18 +63,43 @@ function layout(data: GraphData, direction: 'LR' | 'TB'): { nodes: Node[]; edges
     source: e.source,
     target: e.target,
     label: e.label,
-    markerEnd: { type: MarkerType.ArrowClosed },
+    labelShowBg: true,
+    style: { stroke: 'var(--rf-edge)', strokeWidth: 1.5 },
+    labelStyle: { fill: 'var(--text-muted)', fontSize: 11, fontWeight: 500 },
+    labelBgStyle: { fill: 'var(--surface)' },
+    labelBgPadding: [4, 2] as [number, number],
+    labelBgBorderRadius: 4,
+    markerEnd: { type: MarkerType.ArrowClosed, width: 16, height: 16, color: 'var(--rf-edge)' },
   }));
 
   return { nodes, edges };
 }
 
+/** カード型ノード。左に種別色バー、上に種別、下にラベル。href があればクリック可能表示。 */
+function FlowCard({ data }: { data: { label: string; kind: string; color: string; href?: string } }) {
+  return (
+    <div className={`flow-card${data.href ? ' is-link' : ''}`} style={{ ['--kind' as string]: data.color }}>
+      <div className="flow-card-kind">
+        {data.kind}
+        {data.href && <span className="flow-card-jump">↗</span>}
+      </div>
+      <div className="flow-card-label" title={data.label}>
+        {data.label}
+      </div>
+    </div>
+  );
+}
+
+const NODE_TYPES = { flowCard: FlowCard };
+
 export function GraphView({
   data,
   direction = 'LR',
+  compact = false,
 }: {
   data: GraphData;
   direction?: 'LR' | 'TB';
+  compact?: boolean;
 }) {
   const router = useRouter();
   const { nodes, edges } = useMemo(() => layout(data, direction), [data, direction]);
@@ -87,16 +113,19 @@ export function GraphView({
   );
 
   return (
-    <div style={{ height: '70vh', border: '1px solid #e2e8f0', borderRadius: 8 }}>
+    <div className={`graph-canvas${compact ? ' graph-canvas--compact' : ''}`}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
+        nodeTypes={NODE_TYPES}
         onNodeClick={onNodeClick}
+        colorMode="system"
         fitView
+        fitViewOptions={{ padding: 0.2 }}
         proOptions={{ hideAttribution: true }}
       >
-        <Background />
-        <Controls />
+        <Background variant={BackgroundVariant.Dots} gap={22} size={1} color="var(--bg-grid)" />
+        <Controls showInteractive={false} />
       </ReactFlow>
     </div>
   );

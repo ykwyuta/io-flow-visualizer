@@ -51,8 +51,11 @@ function PlanNodeView({ node }: { node: PlanNode }) {
 export function PlanTreeView({ tree }: { tree: PlanTree }) {
   return (
     <div>
-      <div style={{ marginBottom: 8, color: '#475569', fontSize: 13 }}>
-        処理単位: <strong>{tree.rootUnit.name}</strong>（{tree.rootUnit.kind}）
+      <div className={styles.planHeader}>
+        <span className="badge">{tree.rootUnit.kind}</span>
+        <span>
+          処理単位 <strong>{tree.rootUnit.name}</strong>
+        </span>
       </div>
       <div className={styles.tree}>
         <PlanNodeView node={tree.root} />
