@@ -7,6 +7,9 @@ export default function HomePage() {
       <p>プログラムの処理構造を 3 つの視点で可視化します。</p>
       <ul>
         <li>
+          <Link href="/search">検索システム</Link> — 巨大アプリ向け。検索窓・種別絞り込みと Cypher 直接クエリ
+        </li>
+        <li>
           <Link href="/io">IO分析モード</Link> — IO処理構造を実行計画風に可視化
         </li>
         <li>

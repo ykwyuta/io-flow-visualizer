@@ -8,6 +8,7 @@ export const metadata: Metadata = {
 };
 
 const MODES = [
+  { href: '/search', label: '検索' },
   { href: '/io', label: 'IO分析' },
   { href: '/dependency/system', label: '依存関係分析' },
   { href: '/screen', label: '画面関係分析' },
